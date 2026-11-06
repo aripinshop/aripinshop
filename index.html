@@ -4,83 +4,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ARIPIN SHOP</title>
+<title>ARIPIN SHOP - Digital Store</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f1f6ff;color:#183153}
-header{background:#1264d8;color:white;padding:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-header h1{margin:0}
-main{max-width:900px;margin:25px auto;padding:0 15px}
-.panel{background:white;padding:20px;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 12px #dce7f5}
-.hero{background:linear-gradient(120deg,#1264d8,#55a3ff);color:white}
-button{background:#1264d8;color:white;border:0;padding:12px 17px;border-radius:8px;cursor:pointer}
-header button{background:white;color:#1264d8}
-input{display:block;width:100%;padding:12px;margin:8px 0 14px;border:1px solid #ccd8e8;border-radius:8px}
-.categories{display:flex;flex-wrap:wrap;gap:9px}
-.categories span{background:#e6f0ff;color:#1264d8;padding:11px;border-radius:8px}
-.hidden{display:none}
-#message{font-size:14px;overflow-wrap:anywhere}
-footer{text-align:center;padding:25px;color:#718096}
+:root{--blue:#1765e9;--dark:#10264b;--muted:#718096}
+body{margin:0;background:#f4f7fc;color:var(--dark);font-family:Arial,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer;border:0}
+header{background:#fff;padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 3px 18px #10264b0c;position:sticky;top:0;z-index:5}
+.logo{font-size:22px;font-weight:900;color:var(--blue);letter-spacing:-1px}
+.logo span{color:var(--dark)}
+.header-actions{display:flex;gap:8px}
+.btn{background:var(--blue);color:white;padding:11px 16px;border-radius:10px;font-weight:bold}
+.btn-light{background:#eaf1ff;color:var(--blue)}
+main{max-width:1100px;margin:auto;padding:22px 16px}
+.hero{background:linear-gradient(120deg,#104fc5,#3989ff);color:white;padding:35px 28px;border-radius:22px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;background:#ffffff18;right:-40px;top:-40px}
+.hero h1{font-size:clamp(27px,5vw,42px);margin:0 0 12px;max-width:570px}
+.hero p{line-height:1.6;color:#e8f1ff;max-width:500px}
+.hero-tag{display:inline-block;background:#ffffff25;padding:7px 12px;border-radius:30px;font-size:12px;margin-bottom:14px}
+.search{display:flex;gap:9px;margin:22px 0}
+.search input{flex:1;min-width:0;padding:14px 16px;border:1px solid #e0e7f2;border-radius:12px;outline:none;background:white}
+.section{margin-top:27px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.section h2{font-size:20px;margin:0}
+.categories{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.category{background:white;padding:17px 9px;text-align:center;border-radius:15px;border:1px solid #edf1f8;color:var(--dark);font-weight:bold}
+.category .emoji{display:block;font-size:27px;margin-bottom:9px}
+.category.active{border:2px solid var(--blue);background:#edf4ff;color:var(--blue)}
+.account{background:white;padding:16px;border-radius:14px;margin-top:20px;border:1px solid #edf1f8}
+.account p{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
+.auth{background:white;padding:20px;border-radius:16px;margin-top:15px}
+.auth input{display:block;width:100%;padding:13px;border:1px solid #dce4ef;border-radius:10px;margin:8px 0 14px}
+.auth button{width:100%}
+.hidden{display:none!important}
+#message{font-size:13px;overflow-wrap:anywhere}
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.product{background:white;border:1px solid #edf1f8;border-radius:16px;overflow:hidden;box-shadow:0 4px 15px #10264b08}
+.product img{width:100%;height:155px;object-fit:cover;background:#edf3fc}
+.product-info{padding:14px}
+.product-category{font-size:11px;color:var(--blue);font-weight:bold}
+.product h3{font-size:15px;margin:8px 0}
+.desc{font-size:12px;color:var(--muted);min-height:30px;line-height:1.5}
+.price{font-size:18px;font-weight:900;color:var(--blue);margin:12px 0 5px}
+.stock{font-size:12px;color:var(--muted)}
+.buy{width:100%;margin-top:12px}
+.empty{background:white;padding:25px;text-align:center;border-radius:15px;color:var(--muted)}
+footer{text-align:center;padding:30px 15px;color:var(--muted);font-size:13px}
+@media(max-width:650px){
+ header{padding:13px 4%}
+ .logo{font-size:19px}
+ .btn{padding:10px 12px;font-size:12px}
+ main{padding:16px 13px}
+ .hero{padding:27px 20px}
+ .categories{grid-template-columns:repeat(2,1fr)}
+ .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .product img{height:125px}
+ .product-info{padding:11px}
+ .product h3{font-size:14px}
+ .price{font-size:16px}
+}
 </style>
 </head>
 <body>
+
 <header>
-<h1>ARIPIN SHOP</h1>
-<div>
-<button id="loginButton" onclick="showAuth()">Login / Daftar</button>
-<button id="logoutButton" class="hidden" onclick="logout()">Keluar</button>
-</div>
+  <div class="logo">ARIPIN <span>SHOP.</span></div>
+  <div class="header-actions">
+    <button class="btn btn-light" id="loginButton" onclick="showAuth()">Login / Daftar</button>
+    <button class="btn hidden" id="logoutButton" onclick="logout()">Keluar</button>
+  </div>
 </header>
 
 <main>
-<section class="panel hero">
-<h2>Selamat Datang di ARIPIN SHOP!</h2>
-<p>Belanja kebutuhan digital dengan mudah dan praktis.</p>
-</section>
+  <section class="hero">
+    <span class="hero-tag">DIGITAL STORE • ARIPIN SHOP</span>
+    <h1>Semua Kebutuhan Digital Ada Di Sini!</h1>
+    <p>Belanja produk digital favoritmu dengan mudah, praktis, dan nyaman.</p>
+    <button class="btn" onclick="document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">Jelajahi Produk</button>
+  </section>
 
-<section class="panel">
-<h3>Kategori Produk</h3>
-<div class="categories">
-<span>Akun Digital</span>
-<span>Top Up Game</span>
-<span>Pulsa Semua Operator</span>
-<span>Paket Data</span>
-</div>
-</section>
+  <div class="search">
+    <input id="searchInput" type="search" placeholder="Cari produk yang kamu inginkan..." oninput="renderProducts()">
+  </div>
 
-<section class="panel">
-<h3>Akun Pelanggan</h3>
-<p id="accountInfo">Silakan login atau daftar.</p>
-</section>
+  <section class="section">
+    <div class="section-head"><h2>Kategori Produk</h2></div>
+    <div class="categories">
+      <button class="category active" onclick="setCategory('Semua',this)"><span class="emoji">🛍️</span>Semua</button>
+      <button class="category" onclick="setCategory('Akun Digital',this)"><span class="emoji">👤</span>Akun Digital</button>
+      <button class="category" onclick="setCategory('Top Up Game',this)"><span class="emoji">🎮</span>Top Up Game</button>
+      <button class="category" onclick="setCategory('Pulsa',this)"><span class="emoji">📱</span>Pulsa</button>
+      <button class="category" onclick="setCategory('Paket Data',this)"><span class="emoji">🌐</span>Paket Data</button>
+    </div>
+  </section>
 
-<section class="panel hidden" id="authPanel">
-<h3 id="formTitle">Login Pelanggan</h3>
-<form id="authForm">
-<label>Email</label>
-<input id="email" type="email" placeholder="Masukkan email" required>
-<label>Password</label>
-<input id="password" type="password" minlength="6" placeholder="Minimal 6 karakter" required>
-<button id="submitButton" type="submit">Login</button>
-</form>
-<p id="switchText">Belum punya akun? <a href="#" onclick="switchMode(event)">Daftar sekarang</a></p>
-<p id="message"></p>
-</section>
+  <section class="account">
+    <strong>👋 Akun Pelanggan</strong>
+    <p id="accountInfo">Silakan login atau daftar untuk menggunakan akunmu.</p>
+  </section>
 
-<section class="panel">
-<h3>Produk Kami</h3>
-<p>Produk akan ditampilkan setelah ditambahkan melalui database.</p>
-</section>
+  <section class="auth hidden" id="authPanel">
+    <h2 id="formTitle">Login Pelanggan</h2>
+    <form id="authForm">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="Masukkan email" required>
+      <label>Password</label>
+      <input id="password" type="password" minlength="6" placeholder="Minimal 6 karakter" required>
+      <button class="btn" id="submitButton" type="submit">Login</button>
+    </form>
+    <p id="switchText">Belum punya akun? <a href="#" onclick="switchMode(event)">Daftar sekarang</a></p>
+    <p id="message"></p>
+  </section>
+
+  <section class="section" id="productsSection">
+    <div class="section-head">
+      <h2>Produk Pilihan</h2>
+      <span style="font-size:12px;color:#718096" id="productCount"></span>
+    </div>
+    <div class="product-grid" id="productList">
+      <div class="empty">Sedang memuat produk...</div>
+    </div>
+  </section>
 </main>
 
-<footer>© 2026 ARIPIN SHOP | Aman & Terpercaya</footer>
+<footer>
+  <strong>ARIPIN SHOP</strong><br>
+  © 2026 ARIPIN SHOP | Aman & Terpercaya
+</footer>
 
 <script>
 const SUPABASE_URL = "https://qncuviikluwbtyspswex.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l7x2x-Avx7B6CaP1QRZQ7A_KqAeJaD_";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let registerMode = false;
+let registerMode=false;
+let allProducts=[];
+let selectedCategory="Semua";
 
 function showAuth(){
  document.getElementById("authPanel").classList.remove("hidden");
@@ -89,66 +150,167 @@ function showAuth(){
 
 function switchMode(e){
  e.preventDefault();
- registerMode = !registerMode;
- document.getElementById("formTitle").textContent = registerMode ? "Daftar Pelanggan" : "Login Pelanggan";
- document.getElementById("submitButton").textContent = registerMode ? "Daftar" : "Login";
- document.getElementById("switchText").innerHTML = registerMode
- ? 'Sudah punya akun? <a href="#" onclick="switchMode(event)">Login</a>'
- : 'Belum punya akun? <a href="#" onclick="switchMode(event)">Daftar sekarang</a>';
- document.getElementById("message").textContent = "";
+ registerMode=!registerMode;
+ document.getElementById("formTitle").textContent=registerMode?"Daftar Pelanggan":"Login Pelanggan";
+ document.getElementById("submitButton").textContent=registerMode?"Daftar":"Login";
+ document.getElementById("switchText").innerHTML=registerMode
+ ?'Sudah punya akun? <a href="#" onclick="switchMode(event)">Login</a>'
+ :'Belum punya akun? <a href="#" onclick="switchMode(event)">Daftar sekarang</a>';
+ document.getElementById("message").textContent="";
 }
 
 document.getElementById("authForm").addEventListener("submit",async function(e){
  e.preventDefault();
- const email = document.getElementById("email").value.trim();
- const password = document.getElementById("password").value;
- const message = document.getElementById("message");
- const btn = document.getElementById("submitButton");
- btn.disabled = true;
- message.textContent = "Sedang memproses...";
+ const email=document.getElementById("email").value.trim();
+ const password=document.getElementById("password").value;
+ const message=document.getElementById("message");
+ const btn=document.getElementById("submitButton");
+ btn.disabled=true;
+ message.textContent="Sedang memproses...";
  try{
   let result;
   if(registerMode){
-   result = await db.auth.signUp({email,password});
+   result=await db.auth.signUp({email,password});
   }else{
-   result = await db.auth.signInWithPassword({email,password});
+   result=await db.auth.signInWithPassword({email,password});
   }
-  if(result.error) throw result.error;
-  if(registerMode && !result.data.session){
-   message.textContent = "Pendaftaran berhasil. Silakan periksa email untuk konfirmasi.";
+  if(result.error)throw result.error;
+  if(registerMode&&!result.data.session){
+   message.textContent="Pendaftaran berhasil. Jika diminta, periksa email untuk verifikasi.";
   }else{
-   message.textContent = "Login berhasil!";
+   message.textContent=registerMode?"Pendaftaran berhasil!":"Login berhasil!";
    document.getElementById("authPanel").classList.add("hidden");
    await updateAccount();
   }
  }catch(error){
-  message.textContent = "Gagal: " + error.message;
+  message.textContent="Gagal: "+error.message;
  }finally{
-  btn.disabled = false;
+  btn.disabled=false;
  }
 });
 
 async function updateAccount(){
- const {data,error} = await db.auth.getSession();
+ const {data,error}=await db.auth.getSession();
  if(error){console.error(error);return;}
- const user = data.session?.user;
- document.getElementById("accountInfo").textContent = user
- ? "Login sebagai: " + user.email
- : "Silakan login atau daftar.";
+ const user=data.session?.user;
+ document.getElementById("accountInfo").textContent=user
+ ?"Login sebagai: "+user.email
+ :"Silakan login atau daftar untuk menggunakan akunmu.";
  document.getElementById("loginButton").classList.toggle("hidden",!!user);
  document.getElementById("logoutButton").classList.toggle("hidden",!user);
 }
 
 async function logout(){
- const {error} = await db.auth.signOut();
+ const {error}=await db.auth.signOut();
  if(error){alert(error.message);return;}
  await updateAccount();
 }
 
-db.auth.onAuthStateChange(() => {
+function setCategory(category,button){
+ selectedCategory=category;
+ document.querySelectorAll(".category").forEach(b=>b.classList.remove("active"));
+ button.classList.add("active");
+ renderProducts();
+}
+
+function rupiah(value){
+ return "Rp "+Number(value||0).toLocaleString("id-ID");
+}
+
+function renderProducts(){
+ const keyword=document.getElementById("searchInput").value.toLowerCase().trim();
+ const filtered=allProducts.filter(p=>{
+  const matchesCategory=selectedCategory==="Semua"||p.category===selectedCategory;
+  const matchesSearch=(p.name||"").toLowerCase().includes(keyword)||
+   (p.category||"").toLowerCase().includes(keyword)||
+   (p.description||"").toLowerCase().includes(keyword);
+  return matchesCategory&&matchesSearch;
+ });
+
+ const list=document.getElementById("productList");
+ document.getElementById("productCount").textContent=filtered.length+" produk";
+
+ if(!filtered.length){
+  list.innerHTML='<div class="empty" style="grid-column:1/-1">Produk belum tersedia pada kategori atau pencarian ini.</div>';
+  return;
+ }
+
+ list.innerHTML="";
+ filtered.forEach(p=>{
+  const card=document.createElement("article");
+  card.className="product";
+
+  const img=document.createElement("img");
+  img.src=p.image_url||"https://placehold.co/600x400/eaf1ff/1765e9?text=ARIPIN+SHOP";
+  img.alt=p.name||"Produk";
+  img.onerror=()=>{img.src="https://placehold.co/600x400/eaf1ff/1765e9?text=ARIPIN+SHOP";};
+
+  const info=document.createElement("div");
+  info.className="product-info";
+
+  const category=document.createElement("div");
+  category.className="product-category";
+  category.textContent=p.category||"Produk";
+
+  const name=document.createElement("h3");
+  name.textContent=p.name||"Produk";
+
+  const desc=document.createElement("div");
+  desc.className="desc";
+  desc.textContent=p.description||"Produk digital ARIPIN SHOP";
+
+  const price=document.createElement("div");
+  price.className="price";
+  price.textContent=rupiah(p.price);
+
+  const stock=document.createElement("div");
+  stock.className="stock";
+  stock.textContent="Stok: "+(p.stock??0);
+
+  const buy=document.createElement("button");
+  buy.className="btn buy";
+  buy.textContent="Beli Sekarang";
+  buy.disabled=Number(p.stock)<=0;
+  if(buy.disabled){buy.textContent="Stok Habis";}
+  buy.onclick=()=>showAuth();
+
+  info.append(category,name,desc,price,stock,buy);
+  card.append(img,info);
+  list.appendChild(card);
+ });
+}
+
+async function loadProducts(){
+ const list=document.getElementById("productList");
+ list.innerHTML='<div class="empty" style="grid-column:1/-1">Sedang memuat produk...</div>';
+
+ const {data,error}=await db.from("products")
+  .select("id,name,category,description,price,stock,image_url,active")
+  .eq("active",true)
+  .order("created_at",{ascending:false});
+
+ if(error){
+  list.innerHTML="";
+  const err=document.createElement("div");
+  err.className="empty";
+  err.style.gridColumn="1/-1";
+  err.textContent="Produk gagal dimuat: "+error.message;
+  list.appendChild(err);
+  document.getElementById("productCount").textContent="";
+  return;
+ }
+
+ allProducts=data||[];
+ renderProducts();
+}
+
+db.auth.onAuthStateChange(()=>{
  updateAccount();
 });
+
 updateAccount();
+loadProducts();
 </script>
 </body>
-</html>
+     </html>
+     
