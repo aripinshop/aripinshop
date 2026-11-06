@@ -8,107 +8,240 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f1f6ff;color:#17345d;font-family:Arial,sans-serif}
-header{background:#105ecb;color:white;padding:22px}
-header h1{margin:0}
-main{max-width:850px;margin:25px auto;padding:0 15px}
-.card{background:white;padding:22px;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 12px #dce7f5}
-input{display:block;width:100%;padding:13px;margin:10px 0 16px;border:1px solid #ccd8e8;border-radius:8px}
-button{padding:12px 18px;background:#1264d8;color:white;border:0;border-radius:8px;cursor:pointer}
+body{margin:0;background:#f1f5f9;font-family:Arial,sans-serif;color:#172033}
+header{background:#155eef;color:white;padding:20px}
+main{max-width:950px;margin:25px auto;padding:15px}
+.card{background:white;padding:20px;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 12px #0000000d}
+h2{margin-top:0}
+input,textarea,select{width:100%;padding:12px;margin:7px 0 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px}
+button{border:0;border-radius:8px;padding:11px 15px;background:#155eef;color:white;font-weight:bold;cursor:pointer;margin:3px}
+.danger{background:#dc2626}
+.gray{background:#64748b}
+.product{border:1px solid #e2e8f0;padding:14px;border-radius:10px;margin:12px 0}
+.product img{width:90px;height:90px;object-fit:cover;border-radius:8px}
 .hidden{display:none}
-#message{overflow-wrap:anywhere}
+#message{margin:10px 0;color:#155eef}
 </style>
 </head>
 <body>
 <header>
-<h1>ARIPIN SHOP</h1>
-<p>OWNER DASHBOARD</p>
+<h2>ARIPIN SHOP OWNER</h2>
+<p>Dashboard Pengelolaan Produk</p>
 </header>
 
 <main>
-<section class="card" id="loginPanel">
+<section class="card" id="loginBox">
 <h2>Login Owner</h2>
-<p>Masuk menggunakan akun owner yang sudah dibuat.</p>
-<form id="loginForm">
-<label>Email Owner</label>
-<input id="email" type="email" placeholder="Email owner" required>
-<label>Password</label>
-<input id="password" type="password" placeholder="Password owner" required>
-<button type="submit" id="loginBtn">Masuk Dashboard</button>
-</form>
-<p id="message"></p>
+<input id="email" type="email" placeholder="Email owner">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMessage"></p>
 </section>
 
-<section class="card hidden" id="dashboard">
-<h2>Dashboard Owner</h2>
-<p id="welcome"></p>
-<h3>Selamat datang di panel pemilik ARIPIN SHOP!</h3>
-<p>Login owner berhasil diverifikasi.</p>
-<p>Menu pengelolaan produk dan pesanan akan disiapkan pada tahap berikutnya.</p>
-<button onclick="logout()">Keluar</button>
+<section id="dashboard" class="hidden">
+<div class="card">
+<h2>Pengelolaan Produk</h2>
+<button onclick="logout()" class="danger">Logout</button>
+<p id="message"></p>
+</div>
+
+<div class="card">
+<h2 id="formTitle">Tambah Produk</h2>
+<input id="productId" type="hidden">
+<label>Nama produk</label>
+<input id="name" placeholder="Nama produk">
+
+<label>Kategori</label>
+<select id="category">
+<option value="Akun Digital">Akun Digital</option>
+<option value="Top Up Game">Top Up Game</option>
+<option value="Pulsa">Pulsa</option>
+<option value="Paket Data">Paket Data</option>
+<option value="Lainnya">Lainnya</option>
+</select>
+
+<label>Deskripsi</label>
+<textarea id="description" placeholder="Deskripsi produk"></textarea>
+
+<label>Harga (angka saja)</label>
+<input id="price" type="number" min="0" placeholder="Contoh: 15000">
+
+<label>Stok</label>
+<input id="stock" type="number" min="0" placeholder="Jumlah stok">
+
+<label>URL gambar produk (opsional)</label>
+<input id="image_url" type="url" placeholder="https://...">
+
+<button onclick="saveProduct()">Simpan Produk</button>
+<button class="gray" onclick="resetForm()">Batal / Reset</button>
+</div>
+
+<div class="card">
+<h2>Daftar Produk</h2>
+<div id="productList">Memuat produk...</div>
+</div>
 </section>
 </main>
 
 <script>
 const SUPABASE_URL = "https://qncuviikluwbtyspswex.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l7x2x-Avx7B6CaP1QRZQ7A_KqAeJaD_";
-const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function verifyOwner(user){
-  const {data,error} = await db
-    .from("profiles")
-    .select("email,role")
-    .eq("id",user.id)
-    .maybeSingle();
+const $ = id => document.getElementById(id);
+function message(text){$("message").textContent=text;}
 
-  if(error) throw error;
-  if(!data || data.role !== "owner"){
+async function login(){
+  $("loginMessage").textContent="Memeriksa akun...";
+  const {data,error}=await db.auth.signInWithPassword({
+    email:$("email").value.trim(),
+    password:$("password").value
+  });
+  if(error){$("loginMessage").textContent=error.message;return;}
+  const {data:profile,error:profileError}=await db
+    .from("profiles").select("role")
+    .eq("id",data.user.id).maybeSingle();
+
+  if(profileError || !profile || profile.role!=="owner"){
     await db.auth.signOut();
-    throw new Error("Akun ini bukan owner ARIPIN SHOP.");
+    $("loginMessage").textContent="Akun ini bukan owner atau profil tidak bisa dibaca.";
+    return;
   }
-
-  document.getElementById("loginPanel").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("welcome").textContent =
-    "Login sebagai owner: " + (data.email || user.email);
+  showDashboard();
 }
 
-document.getElementById("loginForm").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const btn=document.getElementById("loginBtn");
-  const message=document.getElementById("message");
-  btn.disabled=true;
-  message.textContent="Memeriksa akun...";
+async function checkSession(){
+  const {data}=await db.auth.getSession();
+  if(!data.session)return;
+  const {data:profile,error}=await db.from("profiles")
+    .select("role").eq("id",data.session.user.id).maybeSingle();
+  if(!error && profile?.role==="owner")showDashboard();
+  else await db.auth.signOut();
+}
 
-  try{
-    const {data,error}=await db.auth.signInWithPassword({
-      email:document.getElementById("email").value.trim(),
-      password:document.getElementById("password").value
-    });
-    if(error) throw error;
-    await verifyOwner(data.user);
-  }catch(error){
-    message.textContent="Gagal masuk: "+error.message;
-  }finally{
-    btn.disabled=false;
-  }
-});
+function showDashboard(){
+  $("loginBox").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  loadProducts();
+}
 
 async function logout(){
   await db.auth.signOut();
-  location.reload();
+  $("dashboard").classList.add("hidden");
+  $("loginBox").classList.remove("hidden");
 }
 
-(async()=>{
-  const {data}=await db.auth.getSession();
-  if(data.session){
-    try{
-      await verifyOwner(data.session.user);
-    }catch(error){
-      document.getElementById("message").textContent=error.message;
+async function loadProducts(){
+  $("productList").textContent="Memuat produk...";
+  const {data,error}=await db.from("products")
+    .select("*").order("created_at",{ascending:false});
+  if(error){$("productList").textContent=error.message;return;}
+  if(!data.length){$("productList").textContent="Belum ada produk.";return;}
+
+  $("productList").innerHTML="";
+  data.forEach(p=>{
+    const item=document.createElement("div");
+    item.className="product";
+    const title=document.createElement("h3");
+    title.textContent=p.name;
+    const info=document.createElement("p");
+    info.textContent=p.category+" | Rp "+Number(p.price).toLocaleString("id-ID")+" | Stok: "+p.stock;
+    const status=document.createElement("p");
+    status.textContent=p.active?"Aktif":"Nonaktif";
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.onclick=()=>editProduct(p);
+    const toggle=document.createElement("button");
+    toggle.className="gray";
+    toggle.textContent=p.active?"Nonaktifkan":"Aktifkan";
+    toggle.onclick=()=>toggleProduct(p);
+    const del=document.createElement("button");
+    del.className="danger";
+    del.textContent="Hapus";
+    del.onclick=()=>deleteProduct(p.id);
+    if(p.image_url){
+      const img=document.createElement("img");
+      img.src=p.image_url;
+      img.alt=p.name;
+      img.onerror=()=>img.remove();
+      item.appendChild(img);
     }
+    item.append(title,info,status,edit,toggle,del);
+    $("productList").appendChild(item);
+  });
+}
+
+async function saveProduct(){
+  const name=$("name").value.trim();
+  const price=Number($("price").value);
+  const stock=Number($("stock").value);
+  if(!name || $("price").value==="" || $("stock").value===""){
+    message("Nama, harga, dan stok wajib diisi.");return;
   }
-})();
+  if(!Number.isFinite(price)||price<0||!Number.isInteger(stock)||stock<0){
+    message("Harga atau stok tidak valid.");return;
+  }
+  const product={
+    name,
+    category:$("category").value,
+    description:$("description").value.trim(),
+    price,
+    stock,
+    image_url:$("image_url").value.trim()||null
+  };
+  const id=$("productId").value;
+  let result;
+  if(id){
+    result=await db.from("products").update(product).eq("id",id);
+  }else{
+    result=await db.from("products").insert(product);
+  }
+  if(result.error){message("Gagal menyimpan: "+result.error.message);return;}
+  message("Produk berhasil disimpan!");
+  resetForm();
+  loadProducts();
+}
+
+function editProduct(p){
+  $("productId").value=p.id;
+  $("name").value=p.name||"";
+  $("category").value=p.category||"Lainnya";
+  $("description").value=p.description||"";
+  $("price").value=p.price;
+  $("stock").value=p.stock;
+  $("image_url").value=p.image_url||"";
+  $("formTitle").textContent="Edit Produk";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function resetForm(){
+  $("productId").value="";
+  $("name").value="";
+  $("category").value="Akun Digital";
+  $("description").value="";
+  $("price").value="";
+  $("stock").value="";
+  $("image_url").value="";
+  $("formTitle").textContent="Tambah Produk";
+}
+
+async function toggleProduct(p){
+  const {error}=await db.from("products")
+    .update({active:!p.active}).eq("id",p.id);
+  if(error){message("Gagal: "+error.message);return;}
+  message("Status produk berhasil diubah.");
+  loadProducts();
+}
+
+async function deleteProduct(id){
+  if(!confirm("Yakin ingin menghapus produk ini?"))return;
+  const {error}=await db.from("products").delete().eq("id",id);
+  if(error){message("Gagal menghapus: "+error.message);return;}
+  message("Produk berhasil dihapus.");
+  loadProducts();
+}
+
+checkSession();
 </script>
 </body>
 </html>
