@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARIPIN SHOP - Owner</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f1f6ff;color:#17345d;font-family:Arial,sans-serif}
+header{background:#105ecb;color:white;padding:22px}
+header h1{margin:0}
+main{max-width:850px;margin:25px auto;padding:0 15px}
+.card{background:white;padding:22px;border-radius:14px;margin-bottom:18px;box-shadow:0 3px 12px #dce7f5}
+input{display:block;width:100%;padding:13px;margin:10px 0 16px;border:1px solid #ccd8e8;border-radius:8px}
+button{padding:12px 18px;background:#1264d8;color:white;border:0;border-radius:8px;cursor:pointer}
+.hidden{display:none}
+#message{overflow-wrap:anywhere}
+</style>
+</head>
+<body>
+<header>
+<h1>ARIPIN SHOP</h1>
+<p>OWNER DASHBOARD</p>
+</header>
+
+<main>
+<section class="card" id="loginPanel">
+<h2>Login Owner</h2>
+<p>Masuk menggunakan akun owner yang sudah dibuat.</p>
+<form id="loginForm">
+<label>Email Owner</label>
+<input id="email" type="email" placeholder="Email owner" required>
+<label>Password</label>
+<input id="password" type="password" placeholder="Password owner" required>
+<button type="submit" id="loginBtn">Masuk Dashboard</button>
+</form>
+<p id="message"></p>
+</section>
+
+<section class="card hidden" id="dashboard">
+<h2>Dashboard Owner</h2>
+<p id="welcome"></p>
+<h3>Selamat datang di panel pemilik ARIPIN SHOP!</h3>
+<p>Login owner berhasil diverifikasi.</p>
+<p>Menu pengelolaan produk dan pesanan akan disiapkan pada tahap berikutnya.</p>
+<button onclick="logout()">Keluar</button>
+</section>
+</main>
+
+<script>
+const SUPABASE_URL = "https://qncuviikluwbtyspswex.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l7x2x-Avx7B6CaP1QRZQ7A_KqAeJaD_";
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+async function verifyOwner(user){
+  const {data,error} = await db
+    .from("profiles")
+    .select("email,role")
+    .eq("id",user.id)
+    .maybeSingle();
+
+  if(error) throw error;
+  if(!data || data.role !== "owner"){
+    await db.auth.signOut();
+    throw new Error("Akun ini bukan owner ARIPIN SHOP.");
+  }
+
+  document.getElementById("loginPanel").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+  document.getElementById("welcome").textContent =
+    "Login sebagai owner: " + (data.email || user.email);
+}
+
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const btn=document.getElementById("loginBtn");
+  const message=document.getElementById("message");
+  btn.disabled=true;
+  message.textContent="Memeriksa akun...";
+
+  try{
+    const {data,error}=await db.auth.signInWithPassword({
+      email:document.getElementById("email").value.trim(),
+      password:document.getElementById("password").value
+    });
+    if(error) throw error;
+    await verifyOwner(data.user);
+  }catch(error){
+    message.textContent="Gagal masuk: "+error.message;
+  }finally{
+    btn.disabled=false;
+  }
+});
+
+async function logout(){
+  await db.auth.signOut();
+  location.reload();
+}
+
+(async()=>{
+  const {data}=await db.auth.getSession();
+  if(data.session){
+    try{
+      await verifyOwner(data.session.user);
+    }catch(error){
+      document.getElementById("message").textContent=error.message;
+    }
+  }
+})();
+</script>
+</body>
+</html>
